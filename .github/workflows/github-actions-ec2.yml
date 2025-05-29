@@ -1,0 +1,41 @@
+name: Push-to-EC2 instance
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    name: push to EC2
+    runs-on: ubuntu-latest
+
+     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v1
+
+      - name: Deploy to my EC2 instance
+        uses: appleboy/scp-action@master
+        env:
+          REMOTE_HOST: ${{ secrets.HOST_DNS }}
+          REMOTE_USER: ${{ secrets.USERNAME }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          TARGET: ${{ secrets.TARGET_DIR}}
+      - name: Run remote commands on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+
+          script: |
+          sudo yum -y update
+          sudo yum install -y httpd
+          sudo systemctl start httpd
+          sudo systemctl enable httpd
+          home
+          sudo mv * /var/www/html
+          sudo systemctl restart httpd
+          
+
+          
+    
